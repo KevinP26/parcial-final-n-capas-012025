@@ -1,0 +1,42 @@
+name: examenfinal
+services:
+  database:
+    image: postgres:latest
+    container_name: final-container
+    restart: unless-stopped
+    volumes:
+      - finaldb:/var/lib/postgresql/data
+    networks:
+      - final
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: supportdb
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d supportdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  support_backend:
+    image: support-backend:dev
+    networks:
+      - final
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    build:
+      context: ./
+
+
+
+volumes:
+  finaldb:
+
+networks:
+  final:
